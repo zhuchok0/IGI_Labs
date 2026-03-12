@@ -1,0 +1,38 @@
+services:
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: my-sql-server
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Password123
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  my-app:
+    build: .
+    image: zhuchok0/my-app:latest
+    container_name: my-dotnet-app
+    ports:
+      - "5000:8080"
+    depends_on:
+      - mssql-server
+    networks:
+      - app-network
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mssql-data:
+    driver: local
